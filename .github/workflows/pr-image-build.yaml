@@ -27,16 +27,26 @@ jobs:
       - name: Find changed services
         id: get-services
         run: |
-          git fetch origin ${{ github.base_ref }}
-          CHANGED_SERVICES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | \
-            grep -E 'capsule-ai/(capsule)/' | \
-            awk -F'/' '{print $2}' | \
-            sort -u | \
-            jq -R . | \
-            jq -s .)
+          CHANGED_SERVICES="[]"
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "Running in Pull Request context. Comparing SHAs:"
+            echo "Base: ${{ github.event.pull_request.base.sha }}"
+            echo "Head: ${{ github.event.pull_request.head.sha }}"
+            CHANGED_SERVICES=$(git diff --name-only ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }} | \
+              grep -E 'capsule-ai/(capsule|gyro|raptor)/' | \
+              awk -F'/' '{print $2}' | \
+              sort -u | \
+              jq -R . | \
+              jq -s .)
+          # For manual runs (workflow_dispatch), we assume all services should be built.
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "Running in workflow_dispatch context. Building all services."
+            CHANGED_SERVICES=$(echo '["capsule", "gyro", "raptor"]' | jq '.')
+          fi
 
           echo "Detected changes in: ${CHANGED_SERVICES}"
           echo "services=${CHANGED_SERVICES}" >> $GITHUB_OUTPUT
+
 
   build_and_scan:
     name: Build & Scan (${{ matrix.service }})
