@@ -28,11 +28,24 @@ jobs:
         id: get-services
         run: |
           CHANGED_SERVICES="[]"
+          # For pull requests, we compare the base and head commit SHAs directly.
+          # This is the most reliable way to get the changes for a PR.
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            echo "Running in Pull Request context. Comparing SHAs:"
-            echo "Base: ${{ github.event.pull_request.base.sha }}"
-            echo "Head: ${{ github.event.pull_request.head.sha }}"
-            CHANGED_SERVICES=$(git diff --name-only ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }} | \
+            echo "Running in Pull Request context."
+            # We must fetch the base ref to make sure the base SHA is available in the runner for comparison.
+            git fetch origin ${{ github.event.pull_request.base.ref }}
+
+            BASE_SHA=${{ github.event.pull_request.base.sha }}
+            HEAD_SHA=${{ github.event.pull_request.head.sha }}
+            echo "Comparing SHAs:"
+            echo "Base: ${BASE_SHA}"
+            echo "Head: ${HEAD_SHA}"
+
+            # Get all changed files, and then filter them for our services.
+            CHANGED_FILES=$(git diff --name-only ${BASE_SHA}..${HEAD_SHA})
+            echo -e "Changed files found:\n${CHANGED_FILES}"
+
+            CHANGED_SERVICES=$(echo "${CHANGED_FILES}" | \
               grep -E 'capsule-ai/(capsule|gyro|raptor)/' | \
               awk -F'/' '{print $2}' | \
               sort -u | \
@@ -41,10 +54,15 @@ jobs:
           # For manual runs (workflow_dispatch), we assume all services should be built.
           elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "Running in workflow_dispatch context. Building all services."
-            CHANGED_SERVICES=$(echo '["capsule", "gyro", "raptor"]' | jq '.')
+            CHANGED_SERVICES='["capsule", "gyro", "raptor"]'
           fi
 
-          echo "Detected changes in: ${CHANGED_SERVICES}"
+          # If the grep and jq pipeline results in a null or empty string, default to an empty JSON array.
+          if [[ -z "$CHANGED_SERVICES" || "$CHANGED_SERVICES" == "null" ]]; then
+            CHANGED_SERVICES="[]"
+          fi
+
+          echo "Detected services for matrix: ${CHANGED_SERVICES}"
           echo "services=${CHANGED_SERVICES}" >> $GITHUB_OUTPUT
 
 
