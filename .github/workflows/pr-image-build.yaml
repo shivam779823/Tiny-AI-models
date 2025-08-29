@@ -45,9 +45,10 @@ jobs:
             CHANGED_FILES=$(git diff --name-only ${BASE_SHA}..${HEAD_SHA})
             echo -e "Changed files found:\n${CHANGED_FILES}"
 
+            # This pattern correctly identifies changes in the root service directories.
             CHANGED_SERVICES=$(echo "${CHANGED_FILES}" | \
-              grep -E './(capsule)/' | \
-              awk -F'/' '{print $2}' | \
+              grep -E '^(capsule|gyro|raptor)/' | \
+              awk -F'/' '{print $1}' | \
               sort -u | \
               jq -R . | \
               jq -s .)
