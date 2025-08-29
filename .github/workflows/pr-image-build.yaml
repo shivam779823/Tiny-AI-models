@@ -46,7 +46,7 @@ jobs:
             echo -e "Changed files found:\n${CHANGED_FILES}"
 
             CHANGED_SERVICES=$(echo "${CHANGED_FILES}" | \
-              grep -E 'capsule-ai/(capsule|gyro|raptor)/' | \
+              grep -E './(capsule)/' | \
               awk -F'/' '{print $2}' | \
               sort -u | \
               jq -R . | \
