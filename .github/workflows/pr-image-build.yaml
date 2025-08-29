@@ -1,0 +1,94 @@
+name: CI PR Image Build
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+      - dev
+      - 'release/*'
+      - 'hotfix/*'
+      - 'fix/*'
+env:
+  DOCKERHUB_USERNAME: shiva9921
+
+jobs:
+  identify-changes:
+    name: Identify Changed Services
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.get-services.outputs.services }}
+    steps:
+      # We need the full git history to compare branches, so fetch-depth is 0.
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find changed services
+        id: get-services
+        run: |
+          git fetch origin ${{ github.base_ref }}
+          CHANGED_SERVICES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | \
+            grep -E 'capsule-ai/(capsule)/' | \
+            awk -F'/' '{print $2}' | \
+            sort -u | \
+            jq -R . | \
+            jq -s .)
+
+          echo "Detected changes in: ${CHANGED_SERVICES}"
+          echo "services=${CHANGED_SERVICES}" >> $GITHUB_OUTPUT
+
+  build_and_scan:
+    name: Build & Scan (${{ matrix.service }})
+    needs: identify-changes
+    # Do not run the job if no services have changed.
+    if: needs.identify-changes.outputs.services != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false 
+      matrix:
+        service: ${{ fromJson(needs.identify-changes.outputs.services) }}
+    permissions:
+      contents: read       # Required to checkout the code
+      security-events: write # Required for 'aquasecurity/trivy-action' to upload SARIF results
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract Docker metadata for ${{ matrix.service }}
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          # The image name is now dynamic based on the service from the matrix.
+          images: ${{ env.DOCKERHUB_USERNAME }}/${{ matrix.service }}
+          tags: |
+            type=sha,prefix=,format=short
+            type=ref,event=pr
+
+      - name: Build Docker Image for ${{ matrix.service }}
+        uses: docker/build-push-action@v5
+        with:
+          # The build context and Dockerfile path are now dynamic.
+          context: ./${{ matrix.service }}
+          file: ./${{ matrix.service }}/dockerfile
+          push: true # We build locally first for scanning
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Run Trivy Vulnerability Scanner on ${{ matrix.service }}
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ steps.meta.outputs.tags }}
+          format: 'table'
+          exit-code: '1' # Fail the build on high/critical vulnerabilities
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          output: 'trivy-results.sarif'
