@@ -1,0 +1,15 @@
+FROM ollama/ollama:latest
+
+COPY Modelfile /
+
+RUN ollama serve & \
+    sleep 2 && \
+    # ollama pull tinyllama && \
+     ollama pull llama3:8b && \
+    ollama create raptor-ai -f /Modelfile && \
+    ollama rm llama3:8b
+
+    # When a container starts from this image, it will immediately start serving
+# the 'capsule-ai' model on port 11434. This is the only instruction
+# needed to start the server.
+CMD [ "serve" ]
