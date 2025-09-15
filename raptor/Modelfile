@@ -1,5 +1,5 @@
 # Using a powerful, widely-supported open-source model as the base
-FROM llama3:8b
+FROM tinyllama
 
 # SYSTEM prompt defines the AI's persona, capabilities, and rules.
 # This is the core instruction set for the model.
