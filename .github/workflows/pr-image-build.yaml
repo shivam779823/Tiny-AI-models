@@ -48,7 +48,7 @@ jobs:
             # This pattern correctly identifies changes in the root service directories.
             # FIX: Added the '-c' (compact) flag to jq to ensure the output is a single line.
             CHANGED_SERVICES=$(echo "${CHANGED_FILES}" | \
-              grep -E '^(capsule|gyro|raptor)/' | \
+              grep -E '^(capsule|vison|raptor)/' | \
               awk -F'/' '{print $1}' | \
               sort -u | \
               jq -R . | \
@@ -56,7 +56,7 @@ jobs:
           # For manual runs (workflow_dispatch), we assume all services should be built.
           elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "Running in workflow_dispatch context. Building all services."
-            CHANGED_SERVICES='["capsule", "gyro", "raptor"]'
+            CHANGED_SERVICES='["capsule", "vison", "raptor"]'
           fi
 
           # If the grep and jq pipeline results in a null or empty string, default to an empty JSON array.
