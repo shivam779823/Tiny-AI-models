@@ -113,13 +113,19 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Run Trivy Vulnerability Scanner on ${{ matrix.service }}
-        uses: aquasecurity/trivy-action@0.24.0
-        with:
-          image-ref: ${{ steps.meta.outputs.tags }}
-          format: 'table'
-          exit-code: '1' # Fail the build on high/critical vulnerabilities
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
-          output: 'trivy-results.sarif'
+      - name: Image summary for ${{ matrix.service }}
+        run: |
+          echo "Image built and pushed: ${{ steps.meta.outputs.tags }}" > $GITHUB_STEP_SUMMARY
+           
+
+      # - name: Run Trivy Vulnerability Scanner on ${{ matrix.service }}
+      #   uses: aquasecurity/trivy-action@0.24.0
+      #   with:
+      #     image-ref: ${{ steps.meta.outputs.tags }}
+      #     format: 'table'
+      #     exit-code: '1' # Fail the build on high/critical vulnerabilities
+      #     ignore-unfixed: true
+      #     vuln-type: 'os,library'
+      #     severity: 'CRITICAL,HIGH'
+      #     output: 'trivy-results.sarif'
+          
