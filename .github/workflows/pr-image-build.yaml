@@ -11,7 +11,7 @@ on:
 env:
   DOCKERHUB_USERNAME: shiva9921
   Folders: capsule | vison | raptor
-  changed_services: '[""]'
+
 jobs:
   identify-changes:
     name: Identify Changed Services
@@ -124,4 +124,3 @@ jobs:
           severity: 'CRITICAL,HIGH'
           output: 'trivy-results.sarif'
 
-          
