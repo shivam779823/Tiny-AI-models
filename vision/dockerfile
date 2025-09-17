@@ -1,7 +1,7 @@
 FROM ollama/ollama:latest
 
 ENV MODEL_NAME=kvison
-ENV OLLAMA_MODEL=llama3.2-vision
+ENV OLLAMA_MODEL=llama3.2-vision:11b
 
 
 COPY Modelfile /

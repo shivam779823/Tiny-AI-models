@@ -10,7 +10,8 @@ on:
       - 'fix/*'
 env:
   DOCKERHUB_USERNAME: shiva9921
-
+  Folders: capsule | vison | raptor
+  changed_services: '[""]'
 jobs:
   identify-changes:
     name: Identify Changed Services
@@ -48,7 +49,7 @@ jobs:
             # This pattern correctly identifies changes in the root service directories.
             # FIX: Added the '-c' (compact) flag to jq to ensure the output is a single line.
             CHANGED_SERVICES=$(echo "${CHANGED_FILES}" | \
-              grep -E '^(capsule|vison|raptor)/' | \
+              grep -E '^(${env.Folders})/' | \
               awk -F'/' '{print $1}' | \
               sort -u | \
               jq -R . | \
