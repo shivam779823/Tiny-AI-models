@@ -10,7 +10,7 @@ on:
       - 'fix/*'
 env:
   DOCKERHUB_USERNAME: shiva9921
-  Folders: capsule | vison | raptor
+  Folders: "capsule | vison | raptor"
 
 jobs:
   identify-changes:
@@ -49,7 +49,7 @@ jobs:
             # This pattern correctly identifies changes in the root service directories.
             # FIX: Added the '-c' (compact) flag to jq to ensure the output is a single line.
             CHANGED_SERVICES=$(echo "${CHANGED_FILES}" | \
-              grep -E '^(${env.Folders})/' | \
+              grep -E '^(${FOLDERS})/' | \
               awk -F'/' '{print $1}' | \
               sort -u | \
               jq -R . | \
@@ -123,4 +123,3 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
           output: 'trivy-results.sarif'
-
