@@ -1,4 +1,4 @@
-FROM llama3.2-vision:11b
+FROM llava:7b
 
 # Control output style and context length
 PARAMETER temperature 0.2
