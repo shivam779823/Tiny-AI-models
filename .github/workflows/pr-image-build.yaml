@@ -50,7 +50,7 @@ jobs:
             # FIX: Added the '-c' (compact) flag to jq to ensure the output is a single line.
             echo $FOLDERS
             CHANGED_SERVICES=$(echo "${CHANGED_FILES}" | \
-              grep -E '^(${FOLDERS})/' | \
+              grep -E "^(${FOLDERS})/" | \
               awk -F'/' '{print $1}' | \
               sort -u | \
               jq -R . | \
