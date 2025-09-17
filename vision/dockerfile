@@ -17,3 +17,4 @@ RUN ollama serve & \
 # the 'capsule-ai' model on port 11434. This is the only instruction
 # needed to start the server.
 CMD [ "serve" ]
+
