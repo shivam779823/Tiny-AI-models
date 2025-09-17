@@ -10,7 +10,7 @@ on:
       - 'fix/*'
 env:
   DOCKERHUB_USERNAME: shiva9921
-  FOLDERS: "capsule|vison|raptor"
+  FOLDERS: "capsule|vision|raptor"
 
 jobs:
   identify-changes:
