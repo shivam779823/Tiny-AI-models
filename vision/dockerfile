@@ -2,7 +2,7 @@ FROM ollama/ollama:latest
 
 # Model and config
 ENV MODEL_NAME=kvison
-ENV OLLAMA_MODEL=llava:7b
+ENV OLLAMA_MODEL=moondream:1.8b
 
 
 COPY Modelfile /Modelfile
@@ -17,6 +17,5 @@ RUN set -eux; \
 
 
 CMD ["serve"]
-
 
 

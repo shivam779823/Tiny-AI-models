@@ -1,4 +1,4 @@
-FROM llava:7b
+FROM moondream:1.8b
 
 # Control output style and context length
 PARAMETER temperature 0.2
