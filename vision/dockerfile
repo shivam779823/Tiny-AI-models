@@ -1,0 +1,21 @@
+FROM ollama/ollama:latest
+
+# Model and config
+ENV MODEL_NAME=kvison
+ENV OLLAMA_MODEL=moondream:1.8b
+
+
+COPY Modelfile /Modelfile
+
+RUN set -eux; \
+    ollama serve & \
+    sleep 5 && \
+    ollama pull ${OLLAMA_MODEL} && \
+    ollama create ${MODEL_NAME} -f /Modelfile && \
+    ollama rm ${OLLAMA_MODEL} && \
+    rm -rf /root/.ollama/download/*
+
+
+CMD ["serve"]
+
+
